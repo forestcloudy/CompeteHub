@@ -17,11 +17,17 @@ def create_app():
     db.init_app(app)
 
     # 在这里注册蓝图（后面会用到）
-    from app.routes import auth, competitions, teams
+    from app.routes import auth, competitions, teams, profiles
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(competitions.bp)
     app.register_blueprint(teams.bp)
+    app.register_blueprint(profiles.bp)
+
+    # 注册静态文件路由
+    @app.route('/')
+    def index():
+        return app.send_static_file('login.html')
 
     # 在应用上下文中创建所有数据库表
     with app.app_context():

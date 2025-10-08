@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app import db
 from app.models.competition import Competition
+from app.services.data_processing import create_competition_with_validation, get_competition_statistics, search_competitions
 from datetime import datetime
 
 # 创建竞赛模块的蓝图，命名为'competitions'
@@ -41,43 +42,18 @@ def create_competition():
         # 从前端请求中获取JSON数据
         data = request.get_json()
         
-        # 验证必需字段
-        if not data or not data.get('name'):
-            return jsonify({'error': '竞赛名称是必需的'}), 400
+        # 调用服务层处理业务逻辑
+        result, success = create_competition_with_validation(data)
         
-        # 创建新的竞赛对象
-        competition = Competition(
-            name=data['name'],
-            organizer=data.get('organizer'),
-            deadline=datetime.fromisoformat(data['deadline']) if data.get('deadline') else None,
-            description=data.get('description'),
-            category=data.get('category'),
-            official_link=data.get('official_link')
-        )
-        
-        # 添加到数据库会话
-        db.session.add(competition)
-        
-        # 提交事务，将数据写入数据库
-        db.session.commit()
-        
-        # 返回创建成功的响应
-        return jsonify({
-            'message': '竞赛创建成功',
-            'competition': {
-                'id': competition.id,
-                'name': competition.name,
-                'organizer': competition.organizer,
-                'deadline': competition.deadline.isoformat() if competition.deadline else None,
-                'description': competition.description,
-                'category': competition.category,
-                'official_link': competition.official_link
-            }
-        }), 201
+        if success:
+            return jsonify(result), 201
+        else:
+            return jsonify(result), 400
+            
     except Exception as e:
         # 发生错误时回滚事务并返回错误信息
         db.session.rollback()
-        return jsonify({'error': '创建竞赛失败'}), 500
+        return jsonify({'error': '创建竞赛失败: ' + str(e)}), 500
 
 
 @bp.route('/competitions/<int:competition_id>', methods=['GET'])
@@ -153,7 +129,7 @@ def update_competition(competition_id):
     except Exception as e:
         # 发生错误时回滚事务并返回错误信息
         db.session.rollback()
-        return jsonify({'error': '更新竞赛失败'}), 500
+        return jsonify({'error': '更新竞赛失败: ' + str(e)}), 500
 
 
 @bp.route('/competitions/<int:competition_id>', methods=['DELETE'])
@@ -178,4 +154,31 @@ def delete_competition(competition_id):
     except Exception as e:
         # 发生错误时回滚事务并返回错误信息
         db.session.rollback()
-        return jsonify({'error': '删除竞赛失败'}), 500
+        return jsonify({'error': '删除竞赛失败: ' + str(e)}), 500
+
+
+@bp.route('/competitions/statistics', methods=['GET'])
+def competition_statistics():
+    """获取竞赛统计信息"""
+    try:
+        # 调用服务层获取统计信息
+        stats = get_competition_statistics()
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': '获取统计信息失败: ' + str(e)}), 500
+
+
+@bp.route('/competitions/search', methods=['GET'])
+def search_competitions_route():
+    """搜索竞赛"""
+    try:
+        # 从查询参数获取关键词
+        keyword = request.args.get('q', '')
+        if not keyword:
+            return jsonify({'error': '请提供搜索关键词'}), 400
+        
+        # 调用服务层搜索竞赛
+        results = search_competitions(keyword)
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({'error': '搜索失败: ' + str(e)}), 500

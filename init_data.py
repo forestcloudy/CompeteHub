@@ -62,7 +62,7 @@ def init_users():
     """初始化用户数据"""
     users_data = [
         {
-            'username': 'Stephen Curry',
+            'username': 'SGA',
             'email': 'ming@example.com',
             'university': '华南师范大学',
             'major': '计算机科学与技术'
