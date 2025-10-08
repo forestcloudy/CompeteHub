@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>竞赛组队平台</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .competition-list {
+            margin-top: 30px;
+        }
+        .competition-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        
+        /* 添加导航栏样式 */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .navbar h1 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <div class="navbar">
+        <h1>竞赛组队平台</h1>
+        <div class="user-info">
+            <span id="welcomeMessage">欢迎访问</span>
+            <button class="logout-btn" id="logoutBtn" style="display: none;">退出登录</button>
+        </div>
+    </div>
+    
+    <!-- 用户注册表单 -->
+    <div id="registerSection">
+        <h2>用户注册</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="username">用户名:</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label for="email">邮箱:</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">密码:</label>
+                <input type="password" id="password" required>
+            </div>
+            <div class="form-group">
+                <label for="university">大学:</label>
+                <input type="text" id="university">
+            </div>
+            <div class="form-group">
+                <label for="major">专业:</label>
+                <input type="text" id="major">
+            </div>
+            <button type="submit">注册</button>
+        </form>
+    </div>
+    
+    <!-- 用户登录表单 -->
+    <div id="loginSection">
+        <h2>用户登录</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginUsername">用户名:</label>
+                <input type="text" id="loginUsername" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">密码:</label>
+                <input type="password" id="loginPassword" required>
+            </div>
+            <button type="submit">登录</button>
+        </form>
+        <p>或者 <a href="/static/login.html">使用精美登录页面</a></p>
+    </div>
+    
+    <!-- 创建竞赛表单 -->
+    <div id="competitionSection" style="display: none;">
+        <h2>创建竞赛</h2>
+        <form id="competitionForm">
+            <div class="form-group">
+                <label for="name">竞赛名称:</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="organizer">主办方:</label>
+                <input type="text" id="organizer">
+            </div>
+            <div class="form-group">
+                <label for="deadline">截止日期:</label>
+                <input type="datetime-local" id="deadline">
+            </div>
+            <div class="form-group">
+                <label for="category">竞赛类别:</label>
+                <select id="category">
+                    <option value="算法">算法</option>
+                    <option value="创业">创业</option>
+                    <option value="数学建模">数学建模</option>
+                    <option value="数据科学">数据科学</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="official_link">官方链接:</label>
+                <input type="url" id="official_link">
+            </div>
+            <div class="form-group">
+                <label for="description">竞赛描述:</label>
+                <textarea id="description" rows="4"></textarea>
+            </div>
+            <button type="submit">创建竞赛</button>
+        </form>
+    </div>
+    
+    <!-- 显示结果 -->
+    <div id="result" class="result" style="display: none;"></div>
+    
+    <!-- 竞赛列表 -->
+    <div class="competition-list">
+        <h2>竞赛列表</h2>
+        <button id="loadCompetitions">加载竞赛列表</button>
+        <div id="competitions"></div>
+    </div>
+
+    <script>
+        // 全局变量存储用户信息
+        let currentUser = null;
+        
+        // 页面加载时检查是否有已登录用户
+        window.addEventListener('DOMContentLoaded', function() {
+            const storedUser = localStorage.getItem('currentUser');
+            if (storedUser) {
+                currentUser = JSON.parse(storedUser);
+                updateUIForLoggedInUser();
+            }
+        });
+        
+        // 更新UI以反映登录状态
+        function updateUIForLoggedInUser() {
+            document.getElementById('welcomeMessage').textContent = `欢迎, ${currentUser.username}!`;
+            document.getElementById('logoutBtn').style.display = 'inline-block';
+            document.getElementById('registerSection').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('competitionSection').style.display = 'block';
+        }
+        
+        // 退出登录
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            localStorage.removeItem('currentUser');
+            currentUser = null;
+            document.getElementById('welcomeMessage').textContent = '欢迎访问';
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('registerSection').style.display = 'block';
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('competitionSection').style.display = 'none';
+        });
+        
+        // 用户注册
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                university: document.getElementById('university').value,
+                major: document.getElementById('major').value
+            };
+            
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('注册成功！用户ID: ' + result.user_id, 'success');
+                } else {
+                    showResult('注册失败: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showResult('网络错误: ' + error.message, 'error');
+            }
+        });
+        
+        // 用户登录
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loginData = {
+                username: document.getElementById('loginUsername').value,
+                password: document.getElementById('loginPassword').value
+            };
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    currentUser = result;
+                    // 保存用户信息到localStorage
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    updateUIForLoggedInUser();
+                    showResult('登录成功！欢迎 ' + result.username, 'success');
+                } else {
+                    showResult('登录失败: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showResult('网络错误: ' + error.message, 'error');
+            }
+        });
+        
+        // 创建竞赛
+        document.getElementById('competitionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // 检查用户是否已登录
+            if (!currentUser) {
+                showResult('请先登录再创建竞赛', 'error');
+                return;
+            }
+            
+            const competitionData = {
+                name: document.getElementById('name').value,
+                organizer: document.getElementById('organizer').value,
+                deadline: document.getElementById('deadline').value,
+                category: document.getElementById('category').value,
+                official_link: document.getElementById('official_link').value,
+                description: document.getElementById('description').value
+            };
+            
+            try {
+                const response = await fetch('/competitions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(competitionData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('竞赛创建成功！', 'success');
+                    // 清空表单
+                    document.getElementById('competitionForm').reset();
+                } else {
+                    showResult('创建失败: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showResult('网络错误: ' + error.message, 'error');
+            }
+        });
+        
+        // 加载竞赛列表
+        document.getElementById('loadCompetitions').addEventListener('click', async function() {
+            try {
+                const response = await fetch('/competitions');
+                const competitions = await response.json();
+                
+                if (response.ok) {
+                    displayCompetitions(competitions);
+                } else {
+                    showResult('加载竞赛列表失败', 'error');
+                }
+            } catch (error) {
+                showResult('网络错误: ' + error.message, 'error');
+            }
+        });
+        
+        // 显示结果
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = 'result ' + type;
+            resultDiv.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 显示竞赛列表
+        function displayCompetitions(competitions) {
+            const competitionsDiv = document.getElementById('competitions');
+            
+            if (competitions.length === 0) {
+                competitionsDiv.innerHTML = '<p>暂无竞赛信息</p>';
+                return;
+            }
+            
+            let html = '';
+            competitions.forEach(comp => {
+                html += `
+                <div class="competition-item">
+                    <h3>${comp.name}</h3>
+                    <p><strong>主办方:</strong> ${comp.organizer || '未指定'}</p>
+                    <p><strong>类别:</strong> ${comp.category || '未指定'}</p>
+                    <p><strong>截止日期:</strong> ${comp.deadline ? new Date(comp.deadline).toLocaleString() : '未指定'}</p>
+                    <p><strong>描述:</strong> ${comp.description || '无描述'}</p>
+                    ${comp.official_link ? `<p><strong>官网:</strong> <a href="${comp.official_link}" target="_blank">${comp.official_link}</a></p>` : ''}
+                </div>
+                `;
+            });
+            
+            competitionsDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

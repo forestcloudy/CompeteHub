@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CompeteHub - 登录/注册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        /* 页面背景设置 */
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 30%, #6ba1d1 70%, #ffffff 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.3);
+            z-index: -1;
+        }
+
+  /* 背景装饰元素 */
+        .bg-decoration {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 20s infinite linear;
+            z-index: 0;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+         /* 登录/注册卡片样式 */
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            padding: 36px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-top: 5px solid #1e3c72;
+        }
+
+        /* 卡片悬停效果 - 上浮 */
+        .auth-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+
+        /* 卡片顶部装饰图 */
+        .auth-card .decor-img {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 24px;
+            display: block;
+            border-radius: 50%;
+            border: 2px solid #e8f0fe;
+            transition: transform 0.3s ease;
+        }
+
+        .auth-card:hover .decor-img {
+            transform: scale(1.1);
+        }
+
+        /* 表单标题样式 */
+        .auth-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            color: #2c83ff;
+            margin-bottom: 28px;
+        }
+
+        /* 表单容器样式 */
+        .auth-form {
+            width: 100%;
+        }
+
+        /* 表单输入组 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        /* 表单标签样式 */
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        /* 表单输入框样式 */
+        .form-control {
+            width: 100%;
+            height: 44px;
+            padding: 0 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        /* 输入框聚焦效果 */
+        .form-control:focus {
+            outline: none;
+            border-color: #2c83ff;
+            box-shadow: 0 0 0 3px rgba(44, 131, 255, 0.1);
+        }
+
+        /* 错误提示样式 */
+        .error-message {
+            color: #ff4d4f;
+            font-size: 12px;
+            margin-top: 4px;
+            min-height: 16px;
+            display: none;
+        }
+
+        /* 表单提交按钮样式 */
+        .auth-btn {
+            width: 100%;
+            height: 46px;
+            background-color: #2c83ff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+
+        /* 按钮 hover 效果 */
+        .auth-btn:hover {
+            background-color: #1a73e8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(44, 131, 255, 0.3);
+        }
+
+        /* 表单切换链接样式（登录↔注册） */
+        .switch-link {
+            display: block;
+            text-align: center;
+            font-size: 14px;
+            color: #2c83ff;
+            margin-top: 16px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .switch-link:hover {
+            text-decoration: underline;
+            color: #1a73e8;
+        }
+
+        /* 初始隐藏注册表单，默认显示登录表单 */
+        #registerForm {
+            display: none;
+        }
+
+        /* 密码要求提示（注册页） */
+        .password-hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+
+        /* 5个设计员超链接样式 */
+        .designers-link-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .designers-link {
+            display: inline-block;
+            font-size: 12px;
+            color: #666;
+            text-decoration: none;
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .designers-link:hover {
+            border-color: #2c83ff;
+            color: #2c83ff;
+            background-color: rgba(44, 131, 255, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(44, 131, 255, 0.15);
+        }
+
+        /* 页脚版权信息 */
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* 安全提示样式 */
+        .security-notice {
+            background-color: rgba(44, 131, 255, 0.1);
+            border-left: 4px solid #2c83ff;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<!-- 登录注册卡片容器 -->
+<div class="auth-card">
+    <img src="https://img.icons8.com/fluency/96/000000/trophy.png" alt="CompeteHub竞赛图标" class="decor-img">
+
+    <!-- 登录表单 -->
+    <div id="loginForm">
+        <h2 class="auth-title">CompeteHub 登录</h2>
+        <div class="security-notice">
+            安全提示：系统已启用SQL注入防护和会话安全机制
+        </div>
+        <form class="auth-form" id="loginFormElement">
+            <div class="form-group">
+                <label for="loginUsername">用户名</label>
+                <input type="text" id="loginUsername" class="form-control" placeholder="请输入用户名" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">密码</label>
+                <input type="password" id="loginPassword" class="form-control" placeholder="请输入密码" required>
+                <div class="error-message" id="loginError"></div>
+            </div>
+            <div class="loading" id="loginLoading">
+                <div class="loading-spinner"></div>
+                <span>正在验证...</span>
+            </div>
+            <button type="submit" class="auth-btn">登录</button>
+            <a href="javascript:;" class="switch-link" onclick="switchForm('register')">还没有账号？去注册</a>
+
+            <!-- 设计员链接 -->
+            <div class="designers-link-container">
+                <a href="designer.html" class="designers-link">界面设计团队</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- 注册表单（初始隐藏） -->
+    <div id="registerForm">
+        <h2 class="auth-title">CompeteHub 注册</h2>
+        <div class="security-notice">
+            安全提示：系统已启用SQL注入防护和会话安全机制
+        </div>
+        <form class="auth-form" id="registerFormElement">
+            <div class="form-group">
+                <label for="regUsername">用户名</label>
+                <input type="text" id="regUsername" class="form-control" placeholder="请设置用户名" required>
+                <div class="error-message" id="usernameError"></div>
+                <div class="password-hint">用户名不能超过16个字符</div>
+            </div>
+            <div class="form-group">
+                <label for="regPassword">密码</label>
+                <input type="password" id="regPassword" class="form-control" placeholder="请设置密码" required>
+                <div class="error-message" id="passwordError"></div>
+                <div class="password-hint">
+                    密码需包含：<br>
+                    - 大小写字母<br>
+                    - 数字<br>
+                    - 长度至少8位
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="regConfirmPwd">确认密码</label>
+                <input type="password" id="regConfirmPwd" class="form-control" placeholder="请再次输入密码" required>
+                <div class="error-message" id="confirmError"></div>
+            </div>
+            <div class="loading" id="registerLoading">
+                <div class="loading-spinner"></div>
+                <span>正在注册...</span>
+            </div>
+            <button type="submit" class="auth-btn">注册</button>
+            <a href="javascript:;" class="switch-link" onclick="switchForm('login')">已有账号？去登录</a>
+
+            <!-- 设计员链接 -->
+            <div class="designers-link-container">
+                <a href="designer.html" class="designers-link">界面设计团队</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- 页脚版权信息 -->
+    <div class="footer">© 2025 CompeteHub 版权所有 | 大学生竞赛信息与团队组建平台</div>
+</div>
+
+<script>
+    // 安全配置
+    const SECURITY_CONFIG = {
+        sessionTimeout: 30 * 60 * 1000, // 会话超时时间（30分钟）
+        csrfToken: generateCSRFToken() // 生成CSRF令牌
+    };
+
+    // 生成CSRF令牌
+    function generateCSRFToken() {
+        return Math.random().toString(36).substring(2, 15) +
+               Math.random().toString(36).substring(2, 15);
+    }
+
+    // 检测SQL注入尝试
+    function detectSQLInjection(input) {
+        if (!input) return false;
+
+        const sqlKeywords = [
+            'select', 'insert', 'update', 'delete', 'drop', 'union',
+            'or', 'and', 'where', 'from', 'table', 'database', 'schema',
+            'procedure', 'function', 'trigger', 'index', 'view'
+        ];
+        const lowerInput = input.toLowerCase();
+
+        // 检查是否包含SQL关键字
+        for (const keyword of sqlKeywords) {
+            // 使用正则表达式匹配单词边界
+            const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+            if (regex.test(lowerInput)) {
+                return true;
+            }
+        }
+
+        // 检查是否有SQL注入特殊字符模式
+        const sqlPatterns = [
+            /(\%27)|(\')|(\-\-)|(\%23)|(#)/i, // 单引号、注释符
+            /((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))/i, // 等号后跟SQL代码
+            /\w*((\%27)|(\'))((\%6F)|o|(\%4F))((\%72)|r|(\%52))/i, // 'or'模式
+            /((\%27)|(\'))union/i, // 'union模式
+            /(\%27)|(\')|(\%3B)|(;)/i // 分号和单引号
+        ];
+
+        for (const pattern of sqlPatterns) {
+            if (pattern.test(lowerInput)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // 切换表单函数
+    function switchForm(targetForm) {
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+
+        // 隐藏所有错误提示
+        document.querySelectorAll('.error-message').forEach(el => {
+            el.style.display = 'none';
+        });
+
+        // 根据目标表单显示对应表单，隐藏另一个
+        if (targetForm === 'login') {
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+        } else if (targetForm === 'register') {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+        }
+    }
+
+    // 显示加载状态
+    function showLoading(formType) {
+        const loadingElement = document.getElementById(`${formType}Loading`);
+        if (loadingElement) {
+            loadingElement.style.display = 'block';
+        }
+    }
+
+    // 隐藏加载状态
+    function hideLoading(formType) {
+        const loadingElement = document.getElementById(`${formType}Loading`);
+        if (loadingElement) {
+            loadingElement.style.display = 'none';
+        }
+    }
+
+    // 登录表单验证
+    document.getElementById('loginFormElement').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const errorElement = document.getElementById('loginError');
+
+        // SQL注入检测
+        if (detectSQLInjection(username) || detectSQLInjection(password)) {
+            errorElement.textContent = '检测到SQL注入尝试，输入已被阻止！';
+            errorElement.style.display = 'block';
+            return;
+        }
+
+        // 显示加载状态
+        showLoading('login');
+
+        // 实际登录验证（与后端交互）
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            });
+
+            const result = await response.json();
+            hideLoading('login');
+
+            if (response.ok) {
+                // 登录成功，保存用户信息到localStorage
+                localStorage.setItem('currentUser', JSON.stringify(result));
+                // 跳转到主页
+                window.location.href = '/static/index.html';
+            } else {
+                // 显示错误信息
+                errorElement.textContent = result.error || '登录失败';
+                errorElement.style.display = 'block';
+
+                // 3秒后自动隐藏错误信息
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 3000);
+            }
+        } catch (error) {
+            hideLoading('login');
+            errorElement.textContent = '网络错误，请稍后重试';
+            errorElement.style.display = 'block';
+        }
+    });
+
+    // 注册表单验证
+    document.getElementById('registerFormElement').addEventListener('submit', async function(e) {
+        e.preventDefault(); // 阻止表单默认提交
+
+        const username = document.getElementById('regUsername').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const confirmPwd = document.getElementById('regConfirmPwd').value;
+
+        // 获取错误提示元素
+        const usernameError = document.getElementById('usernameError');
+        const passwordError = document.getElementById('passwordError');
+        const confirmError = document.getElementById('confirmError');
+
+        // 重置所有错误提示
+        usernameError.style.display = 'none';
+        passwordError.style.display = 'none';
+        confirmError.style.display = 'none';
+
+        let isValid = true;
+
+        // SQL注入检测
+        if (detectSQLInjection(username) || detectSQLInjection(password)) {
+            usernameError.textContent = '检测到SQL注入尝试，输入已被阻止！';
+            usernameError.style.display = 'block';
+            isValid = false;
+        }
+
+        // 验证用户名
+        if (username.length > 16) {
+            usernameError.textContent = '用户名不能超过16个字符';
+            usernameError.style.display = 'block';
+            isValid = false;
+        }
+
+        // 验证密码复杂度
+        // 密码规则：至少8位，包含大小写字母和数字
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            passwordError.textContent = '密码不符合要求，请包含大小写字母、数字且至少8位';
+            passwordError.style.display = 'block';
+            isValid = false;
+        }
+
+        // 验证密码一致性
+        if (password !== confirmPwd) {
+            confirmError.textContent = '两次输入的密码不一致';
+            confirmError.style.display = 'block';
+            isValid = false;
+        }
+
+        // 如果验证通过
+        if (isValid) {
+            // 显示加载状态
+            showLoading('register');
+
+            // 实际注册过程
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        email: username + "@competehub.com" // 简化处理，实际项目中应该有邮箱输入
+                    })
+                });
+
+                const result = await response.json();
+                hideLoading('register');
+
+                if (response.ok) {
+                    alert('注册成功！请登录');
+                    switchForm('login');
+                    // 清空表单
+                    this.reset();
+                } else {
+                    // 显示错误信息
+                    usernameError.textContent = result.error || '注册失败';
+                    usernameError.style.display = 'block';
+                }
+            } catch (error) {
+                hideLoading('register');
+                usernameError.textContent = '网络错误，请稍后重试';
+                usernameError.style.display = 'block';
+            }
+        }
+    });
+</script>
+</body>
+</html>
